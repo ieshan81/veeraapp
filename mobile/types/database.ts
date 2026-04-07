@@ -75,7 +75,7 @@ export type UserPlantProgress = {
 };
 
 export type UserPlantWithCatalog = UserPlant & {
-  plant: Pick<Plant, 'id' | 'common_name' | 'scientific_name'> | null;
+  plant: Pick<Plant, 'id' | 'common_name' | 'scientific_name' | 'water_level' | 'light_level'> | null;
 };
 
 export type UserPlantWithLatest = UserPlantWithCatalog & {

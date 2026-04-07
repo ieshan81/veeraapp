@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { BotanicalBackground } from '@/components/ui/BotanicalBackground';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { fontFamily, theme } from '@/constants/theme';
@@ -12,13 +13,15 @@ import {
   updateUserPlant,
 } from '@/lib/api/plants';
 import { cancelPlantReminder, schedulePlantReminder } from '@/lib/reminders';
-import { describeNextCare } from '@/lib/schedule';
+import { getGamificationState } from '@/lib/gamification';
+import { describeNextCare, describeNextWatering } from '@/lib/schedule';
 import { queryClient } from '@/lib/query-client';
 import { useAuth } from '@/providers/AuthProvider';
 import type { Plant, UserPlantProgress } from '@/types/database';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useQuery } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -69,6 +72,7 @@ export default function MyPlantDetailScreen() {
   const { user } = useAuth();
   const userId = user?.id ?? '';
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
 
   const plantQ = useQuery({
     queryKey: qk.userPlant(rowId ?? '', userId),
@@ -80,6 +84,11 @@ export default function MyPlantDetailScreen() {
     queryKey: qk.progress(rowId ?? '', userId),
     queryFn: () => fetchProgress(rowId!, userId),
     enabled: Boolean(rowId && userId),
+  });
+
+  const gamifyQ = useQuery({
+    queryKey: ['gamification'],
+    queryFn: () => getGamificationState(),
   });
 
   const catalog = plantQ.data?.plant as Plant | null | undefined;
@@ -157,6 +166,35 @@ export default function MyPlantDetailScreen() {
     }
   };
 
+  const journeyMilestones = useMemo(() => {
+    const p = plantQ.data;
+    if (!p) return [];
+    const items: { label: string; date: Date; detail: string }[] = [];
+    items.push({
+      label: 'Joined VEERA',
+      date: new Date(p.created_at),
+      detail: 'Care plan and reminders initialized from the catalog.',
+    });
+    if (p.acquired_at) {
+      items.push({
+        label: 'In your space',
+        date: new Date(p.acquired_at),
+        detail: 'You noted when this plant arrived.',
+      });
+    }
+    for (const e of progressQ.data ?? []) {
+      items.push({
+        label: e.note?.trim() ? 'Check-in' : e.photo_storage_path ? 'Photo log' : 'Progress',
+        date: new Date(e.created_at),
+        detail:
+          e.note?.trim() ||
+          (e.photo_storage_path ? 'Added a progress photo.' : 'Logged a care moment.'),
+      });
+    }
+    items.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return items.slice(0, 12);
+  }, [plantQ.data, progressQ.data]);
+
   if (!rowId) {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
@@ -189,12 +227,21 @@ export default function MyPlantDetailScreen() {
     reminder_enabled: p.reminder_enabled,
     reminder_time: p.reminder_time,
   });
+  const nextWater =
+    catalog && p
+      ? describeNextWatering({
+          waterLevel: catalog.water_level,
+          acquiredAt: p.acquired_at,
+          userPlantCreatedAt: p.created_at,
+        })
+      : null;
   const latest = progressQ.data?.[0];
 
   return (
+    <BotanicalBackground variant="dark">
     <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 52 }}>
       {/* Hero area */}
-      <View style={{ paddingTop: insets.top + 56 }}>
+      <View style={{ paddingTop: headerHeight }}>
         {heroUrl ? (
           <Image source={{ uri: heroUrl }} style={styles.hero} resizeMode="cover" />
         ) : (
@@ -245,6 +292,43 @@ export default function MyPlantDetailScreen() {
             {p.reminder_enabled ? 'on' : 'off'}
           </Text>
         </GlassCard>
+
+        {nextWater ? (
+          <GlassCard dark style={styles.waterEst}>
+            <Text style={styles.nextCareHeadline}>Watering estimate</Text>
+            <Text style={styles.nextCareSub}>{nextWater.sub}</Text>
+            <Text style={styles.nextCareMeta}>
+              Based on catalog watering profile
+              {catalog?.water_level ? ` (${catalog.water_level})` : ''}.
+            </Text>
+          </GlassCard>
+        ) : null}
+
+        {gamifyQ.data ? (
+          <GlassCard dark style={styles.gamifyStrip}>
+            <View style={styles.gamifyInner}>
+              <View>
+                <Text style={styles.gamifyLabel}>Your progress</Text>
+                <Text style={styles.gamifySub}>
+                  {gamifyQ.data.points} pts · {gamifyQ.data.streakDays}-day streak
+                </Text>
+              </View>
+              <View style={styles.gamifyRing}>
+                <Text style={styles.gamifyRingText}>{gamifyQ.data.careCompletions}</Text>
+                <Text style={styles.gamifyRingLbl}>logs</Text>
+              </View>
+            </View>
+          </GlassCard>
+        ) : null}
+
+        <Pressable
+          style={styles.guruBtn}
+          onPress={() => router.push(`/(app)/greenguru?userPlantId=${p.id}` as Href)}
+        >
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color={theme.textLight} />
+          <Text style={styles.guruBtnText}>Ask GreenGuru</Text>
+          <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+        </Pressable>
 
         {/* Latest growth */}
         {latest ? (
@@ -368,6 +452,24 @@ export default function MyPlantDetailScreen() {
           <Text style={styles.addProgressText}>Add Progress Entry</Text>
         </Pressable>
 
+        <Text style={styles.sectionTitle}>Plant journey</Text>
+        <Text style={styles.journeyHint}>
+          We build a timeline from your add date, reminders, and logs — add photos anytime.
+        </Text>
+        {journeyMilestones.map((m, idx) => (
+          <GlassCard dark key={`${m.label}-${idx}`} style={styles.journeyCard}>
+            <Text style={styles.journeyDate}>
+              {m.date.toLocaleDateString(undefined, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </Text>
+            <Text style={styles.journeyTitle}>{m.label}</Text>
+            <Text style={styles.journeyDetail}>{m.detail}</Text>
+          </GlassCard>
+        ))}
+
         {progressQ.isPending ? (
           <ActivityIndicator style={{ marginTop: 16 }} color={theme.accentLight} />
         ) : (
@@ -403,6 +505,7 @@ export default function MyPlantDetailScreen() {
         )}
       </View>
     </ScrollView>
+    </BotanicalBackground>
   );
 }
 
@@ -501,6 +604,104 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     color: theme.textMuted,
+    fontFamily: fontFamily.body,
+  },
+
+  waterEst: { marginTop: 12 },
+
+  gamifyStrip: { marginTop: 12 },
+  gamifyInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  gamifyLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: theme.textMuted,
+    textTransform: 'uppercase',
+    fontFamily: fontFamily.semi,
+  },
+  gamifySub: {
+    marginTop: 6,
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.textLight,
+    fontFamily: fontFamily.semi,
+  },
+  gamifyRing: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: 'rgba(114,191,155,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gamifyRingText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.accentLight,
+    fontFamily: fontFamily.displayBold,
+  },
+  gamifyRingLbl: {
+    fontSize: 9,
+    color: theme.textMuted,
+    textTransform: 'uppercase',
+    fontFamily: fontFamily.semi,
+  },
+
+  guruBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: theme.radiusMd,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  guruBtnText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.textLight,
+    fontFamily: fontFamily.semi,
+  },
+
+  journeyHint: {
+    fontSize: 14,
+    color: theme.textMuted,
+    marginBottom: 12,
+    lineHeight: 20,
+    fontFamily: fontFamily.body,
+  },
+  journeyCard: {
+    marginBottom: 10,
+  },
+  journeyDate: {
+    fontSize: 12,
+    color: theme.accentLight,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    fontFamily: fontFamily.semi,
+  },
+  journeyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: theme.textLight,
+    marginTop: 6,
+    fontFamily: fontFamily.displayBold,
+  },
+  journeyDetail: {
+    fontSize: 14,
+    color: theme.textMuted,
+    marginTop: 4,
+    lineHeight: 20,
     fontFamily: fontFamily.body,
   },
 

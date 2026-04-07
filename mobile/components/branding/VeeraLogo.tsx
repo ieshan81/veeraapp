@@ -1,45 +1,35 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { fontFamily, theme } from '@/constants/theme';
 import React from 'react';
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, StyleSheet, type ImageSourcePropType, type ImageStyle, type StyleProp } from 'react-native';
 
 type Size = 'sm' | 'md' | 'lg';
 
-const iconSizes: Record<Size, number> = { sm: 18, md: 24, lg: 32 };
-const fontSizes: Record<Size, number> = { sm: 17, md: 22, lg: 28 };
+const LOGO_ON_LIGHT: ImageSourcePropType = require('@/assets/images/3.png');
+const LOGO_ON_DARK: ImageSourcePropType = require('@/assets/images/4.png');
+
+const widths: Record<Size, number> = { sm: 112, md: 148, lg: 188 };
 
 type Props = {
   size?: Size;
-  showWordmark?: boolean;
-  light?: boolean;
-  style?: StyleProp<ViewStyle>;
+  /** Use `onLight` on pale surfaces (green logo on light). `onDark` on deep green/hero (light logo). */
+  variant: 'onLight' | 'onDark';
+  style?: StyleProp<ImageStyle>;
 };
 
-export function VeeraLogo({ size = 'md', showWordmark = true, light, style }: Props) {
-  const iconColor = light ? theme.accentLight : theme.accent;
-  const textColor = light ? theme.textLight : theme.text;
-
+export function VeeraLogo({ size = 'md', variant, style }: Props) {
+  const source = variant === 'onLight' ? LOGO_ON_LIGHT : LOGO_ON_DARK;
+  const w = widths[size];
   return (
-    <View style={[styles.row, style]}>
-      <Ionicons name="leaf" size={iconSizes[size]} color={iconColor} />
-      {showWordmark ? (
-        <Text style={[styles.wordmark, { fontSize: fontSizes[size], color: textColor }]}>
-          VEERA
-        </Text>
-      ) : null}
-    </View>
+    <Image
+      accessibilityIgnoresInvertColors
+      source={source}
+      resizeMode="contain"
+      style={[styles.img, { width: w, height: w * 0.36 }, style]}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  wordmark: {
-    fontWeight: '700',
-    letterSpacing: 3.5,
-    fontFamily: fontFamily.displayBold,
+  img: {
+    alignSelf: 'center',
   },
 });

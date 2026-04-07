@@ -1,3 +1,5 @@
+import { nextWateringDate, wateringIntervalDays } from '@/lib/care-plan';
+
 /** Human-readable next daily reminder from DB time (HH:MM:SS) and toggle. */
 export function describeNextCare(params: {
   reminder_enabled: boolean;
@@ -27,4 +29,34 @@ export function describeNextCare(params: {
     headline: 'Next care',
     sub: `${dateLabel} · ${timeLabel}`,
   };
+}
+
+/** Estimated next watering window from catalog + personal dates (client-side). */
+export function describeNextWatering(params: {
+  waterLevel: string | null | undefined;
+  acquiredAt: string | null;
+  userPlantCreatedAt: string;
+}): { headline: string; sub: string; date: Date } {
+  const interval = wateringIntervalDays(params.waterLevel);
+  const date = nextWateringDate({
+    anchorIso: params.acquiredAt,
+    fallbackIso: params.userPlantCreatedAt,
+    intervalDays: interval,
+  });
+  const sub = date.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+  return {
+    headline: 'Next watering',
+    sub,
+    date,
+  };
+}
+
+export function formatReminderClock(reminderTime: string | null | undefined): string {
+  if (!reminderTime) return '—';
+  const m = /^(\d{1,2}):(\d{2})/.exec(reminderTime.trim());
+  return m ? `${m[1]}:${m[2]}` : '—';
 }

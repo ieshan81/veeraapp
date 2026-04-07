@@ -3,6 +3,7 @@ import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
 import { qk } from '@/hooks/queries/keys';
 import { insertProgress, uploadProgressPhoto } from '@/lib/api/plants';
+import { recordCareCompletion } from '@/lib/gamification';
 import { queryClient } from '@/lib/query-client';
 import { useAuth } from '@/providers/AuthProvider';
 import * as ImagePicker from 'expo-image-picker';
@@ -65,6 +66,8 @@ export default function AddProgressScreen() {
       });
       await queryClient.invalidateQueries({ queryKey: qk.progress(upId, userId) });
       await queryClient.invalidateQueries({ queryKey: qk.userPlant(upId, userId) });
+      await queryClient.invalidateQueries({ queryKey: ['gamification'] });
+      await recordCareCompletion();
       router.back();
     } catch (e) {
       setError((e as Error).message);

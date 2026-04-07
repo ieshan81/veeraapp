@@ -130,7 +130,7 @@ export default function ScanScreen() {
   if (!permission.granted) {
     return (
       <View style={[styles.center, { paddingHorizontal: 32 }]}>
-        <VeeraLogo size="md" light />
+        <VeeraLogo size="md" variant="onDark" />
         <Text style={styles.permTitle}>Camera access</Text>
         <Text style={styles.permBody}>
           We need camera permission to scan QR codes on your plants.
@@ -155,7 +155,7 @@ export default function ScanScreen() {
 
       {/* Top gradient overlay */}
       <View style={[styles.topOverlay, { paddingTop: insets.top + 8 }]}>
-        <VeeraLogo size="sm" light />
+        <VeeraLogo size="sm" variant="onDark" />
         <Text style={styles.topTitle}>
           {phase === 'processing' || phase === 'done'
             ? 'Scanning Plant…'

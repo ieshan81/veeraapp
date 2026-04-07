@@ -4,6 +4,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
 import type { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { AppState } from 'react-native';
 
 type AuthContextValue = {
   session: Session | null;
@@ -73,6 +74,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, [configError, loadProfile]);
+
+  useEffect(() => {
+    if (configError) return;
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') {
+        void supabase.auth.getSession();
+      }
+    });
+    return () => sub.remove();
+  }, [configError]);
 
   const signOut = useCallback(async () => {
     await clearPendingQrToken();

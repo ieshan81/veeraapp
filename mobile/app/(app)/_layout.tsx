@@ -1,4 +1,5 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
+import { HomeHeaderButton, SmartBackButton } from '@/components/navigation/SmartHeaderButtons';
 import { theme } from '@/constants/theme';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
@@ -35,8 +36,10 @@ export default function AppStackLayout() {
         name="my-plant/[id]"
         options={{
           headerTransparent: true,
-          headerTitle: () => <VeeraLogo size="sm" light />,
+          headerTitle: () => <VeeraLogo size="sm" variant="onDark" />,
           headerTintColor: theme.textLight,
+          headerLeft: () => <SmartBackButton />,
+          headerRight: () => <HomeHeaderButton />,
         }}
       />
       <Stack.Screen
@@ -46,6 +49,8 @@ export default function AppStackLayout() {
           presentation: 'modal',
           headerStyle: { backgroundColor: theme.surface },
           headerTintColor: theme.text,
+          headerLeft: () => <SmartBackButton mode="light" fallback="/(app)/(tabs)" />,
+          headerRight: () => <HomeHeaderButton mode="light" />,
         }}
       />
       <Stack.Screen
@@ -55,6 +60,18 @@ export default function AppStackLayout() {
           presentation: 'modal',
           headerStyle: { backgroundColor: theme.surface },
           headerTintColor: theme.text,
+          headerLeft: () => <SmartBackButton mode="light" fallback="/(app)/(tabs)" />,
+          headerRight: () => <HomeHeaderButton mode="light" />,
+        }}
+      />
+      <Stack.Screen
+        name="greenguru"
+        options={{
+          title: 'GreenGuru',
+          headerStyle: { backgroundColor: theme.bg },
+          headerTintColor: theme.textLight,
+          headerLeft: () => <SmartBackButton />,
+          headerRight: () => <HomeHeaderButton />,
         }}
       />
     </Stack>

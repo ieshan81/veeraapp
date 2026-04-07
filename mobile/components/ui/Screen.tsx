@@ -7,6 +7,8 @@ type Props = {
   children: React.ReactNode;
   scroll?: boolean;
   dark?: boolean;
+  /** Show layered background behind (e.g. BotanicalBackground as parent). */
+  transparent?: boolean;
   style?: ViewStyle;
   contentStyle?: ViewStyle;
   edges?: ('top' | 'right' | 'bottom' | 'left')[];
@@ -16,11 +18,12 @@ export function Screen({
   children,
   scroll,
   dark,
+  transparent,
   style,
   contentStyle,
   edges = ['top', 'left', 'right'],
 }: Props) {
-  const bg = dark ? theme.bg : theme.surface;
+  const bg = transparent ? 'transparent' : dark ? theme.bg : theme.surface;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: bg }, style]} edges={edges}>

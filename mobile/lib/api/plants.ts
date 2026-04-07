@@ -76,7 +76,7 @@ export async function getSignedCatalogPhotoUrl(
 export async function fetchUserPlants(userId: string): Promise<UserPlantWithLatest[]> {
   const { data, error } = await supabase
     .from('user_plants')
-    .select('*, plant:plants(id, common_name, scientific_name)')
+    .select('*, plant:plants(id, common_name, scientific_name, water_level, light_level)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;

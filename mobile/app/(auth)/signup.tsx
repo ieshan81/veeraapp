@@ -1,5 +1,6 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
 import { Button } from '@/components/ui/Button';
+import { BotanicalBackground } from '@/components/ui/BotanicalBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Screen } from '@/components/ui/Screen';
 import { fontFamily, theme } from '@/constants/theme';
@@ -24,7 +25,7 @@ export default function SignupScreen() {
     }
     setLoading(true);
     try {
-      const { error: e } = await supabase.auth.signUp({
+      const { data, error: e } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
@@ -34,6 +35,13 @@ export default function SignupScreen() {
       if (e) {
         setError(e.message);
         return;
+      }
+      if (data.user?.id) {
+        const { error: pe } = await supabase.from('profiles').upsert(
+          { id: data.user.id, display_name: null },
+          { onConflict: 'id' }
+        );
+        if (pe && __DEV__) console.warn('Profile upsert:', pe.message);
       }
       const pending = await consumePendingQrToken();
       if (pending) {
@@ -47,9 +55,10 @@ export default function SignupScreen() {
   };
 
   return (
-    <Screen scroll>
+    <BotanicalBackground variant="light">
+      <Screen scroll transparent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <VeeraLogo size="lg" style={{ marginTop: 16, marginBottom: 8 }} />
+        <VeeraLogo size="lg" variant="onLight" style={{ marginTop: 16, marginBottom: 8 }} />
         <Text style={styles.title}>Create account</Text>
         <Text style={styles.sub}>Use the same email you use for VEERA.</Text>
         <GlassCard style={styles.formCard}>
@@ -77,7 +86,8 @@ export default function SignupScreen() {
           <Text style={styles.link}>Already have an account? Sign in</Text>
         </Pressable>
       </KeyboardAvoidingView>
-    </Screen>
+      </Screen>
+    </BotanicalBackground>
   );
 }
 

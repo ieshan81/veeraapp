@@ -1,4 +1,5 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
+import { BotanicalBackground } from '@/components/ui/BotanicalBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { fontFamily, theme } from '@/constants/theme';
 import { useAuth } from '@/providers/AuthProvider';
@@ -21,7 +22,7 @@ export default function ProfileScreen() {
   }, []);
 
   return (
-    <View style={styles.root}>
+    <BotanicalBackground variant="dark">
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -31,7 +32,7 @@ export default function ProfileScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <VeeraLogo size="sm" light />
+          <VeeraLogo size="sm" variant="onDark" />
         </View>
 
         <Text style={styles.h1}>Profile</Text>
@@ -93,15 +94,11 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>Sign Out</Text>
         </Pressable>
       </ScrollView>
-    </View>
+    </BotanicalBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: theme.bg,
-  },
   scroll: {
     paddingHorizontal: 20,
   },

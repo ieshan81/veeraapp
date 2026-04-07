@@ -1,5 +1,6 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
 import { Button } from '@/components/ui/Button';
+import { BotanicalBackground } from '@/components/ui/BotanicalBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Screen } from '@/components/ui/Screen';
 import { fontFamily, theme } from '@/constants/theme';
@@ -37,9 +38,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <Screen scroll>
+    <BotanicalBackground variant="light">
+      <Screen scroll transparent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <VeeraLogo size="lg" style={{ marginTop: 16, marginBottom: 8 }} />
+        <VeeraLogo size="lg" variant="onLight" style={{ marginTop: 16, marginBottom: 8 }} />
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.sub}>Sign in to continue your plant journey.</Text>
         <GlassCard style={styles.formCard}>
@@ -67,7 +69,8 @@ export default function LoginScreen() {
           <Text style={styles.link}>Create an account</Text>
         </Pressable>
       </KeyboardAvoidingView>
-    </Screen>
+      </Screen>
+    </BotanicalBackground>
   );
 }
 

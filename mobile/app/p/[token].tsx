@@ -82,7 +82,7 @@ export default function PlantDeepLinkScreen() {
   if (phase === 'auth') {
     return (
       <View style={[styles.center, { paddingTop: insets.top + 24 }]}>
-        <VeeraLogo size="md" />
+        <VeeraLogo size="md" variant="onLight" />
         <ActivityIndicator color={theme.accent} style={{ marginTop: 24 }} />
         <Text style={styles.hint}>Signing you in…</Text>
       </View>
@@ -92,7 +92,7 @@ export default function PlantDeepLinkScreen() {
   if (phase === 'error' && errorMessage) {
     return (
       <View style={[styles.center, { paddingTop: insets.top + 24, paddingHorizontal: 28 }]}>
-        <VeeraLogo size="md" />
+        <VeeraLogo size="md" variant="onLight" />
         <Text style={styles.errTitle}>Plant link</Text>
         <Text style={styles.errBody}>{errorMessage}</Text>
         <Button title="Go home" onPress={() => router.replace('/(app)/(tabs)')} style={styles.btn} />
@@ -108,7 +108,7 @@ export default function PlantDeepLinkScreen() {
 
   return (
     <View style={[styles.center, { paddingTop: insets.top + 24 }]}>
-      <VeeraLogo size="md" />
+      <VeeraLogo size="md" variant="onLight" />
       <ActivityIndicator color={theme.accent} size="large" style={{ marginTop: 28 }} />
       <Text style={styles.hint}>Opening plant…</Text>
     </View>

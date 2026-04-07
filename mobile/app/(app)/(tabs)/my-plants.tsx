@@ -1,4 +1,5 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
+import { BotanicalBackground } from '@/components/ui/BotanicalBackground';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -26,7 +27,7 @@ export default function MyPlantsScreen() {
   });
 
   return (
-    <View style={styles.root}>
+    <BotanicalBackground variant="dark">
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -36,7 +37,7 @@ export default function MyPlantsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <VeeraLogo size="sm" light />
+          <VeeraLogo size="sm" variant="onDark" />
         </View>
 
         <Text style={styles.h1}>My Plants</Text>
@@ -145,15 +146,11 @@ export default function MyPlantsScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </BotanicalBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: theme.bg,
-  },
   scroll: {
     paddingHorizontal: 20,
   },

@@ -1,5 +1,6 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
 import { Button } from '@/components/ui/Button';
+import { BotanicalBackground } from '@/components/ui/BotanicalBackground';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Screen } from '@/components/ui/Screen';
 import { fontFamily, theme } from '@/constants/theme';
@@ -7,9 +8,38 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { requestNotificationPermission } from '@/lib/reminders';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
+
+const STEPS = [
+  {
+    title: 'Scan',
+    body: 'Point your camera at a VEERA QR on your plant — we’ll open the right profile instantly.',
+    icon: 'qr-code-outline' as const,
+  },
+  {
+    title: 'Learn',
+    body: 'See care guidance, light and water cues, and rich detail from our catalog.',
+    icon: 'book-outline' as const,
+  },
+  {
+    title: 'Collect',
+    body: 'Add the plant to My Plants with a nickname and room — duplicates are welcome.',
+    icon: 'leaf-outline' as const,
+  },
+  {
+    title: 'Plan',
+    body: 'VEERA drafts a care plan: watering rhythm, daily reminders, and your next tasks.',
+    icon: 'calendar-outline' as const,
+  },
+  {
+    title: 'Grow',
+    body: 'Track the journey with logs and photos — reminders keep you gently on schedule.',
+    icon: 'trending-up-outline' as const,
+  },
+];
 
 export default function OnboardingScreen() {
   const { user, refreshProfile } = useAuth();
@@ -34,51 +64,54 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <Screen scroll>
-      {step === 0 && (
-        <View style={styles.block}>
-          <VeeraLogo size="lg" style={{ marginBottom: 20 }} />
-          <GlassCard>
-            <Text style={styles.h1}>Grow with every leaf</Text>
-            <Text style={styles.p}>
-              Scan a plant QR code, add it to your collection, and track care over time.
-            </Text>
-            <Button title="Next" onPress={() => setStep(1)} style={styles.mt} />
-          </GlassCard>
-        </View>
-      )}
-      {step === 1 && (
-        <View style={styles.block}>
-          <GlassCard>
-            <Text style={styles.h2}>Scan</Text>
-            <Text style={styles.p}>Point your camera at a VEERA sticker or open a plant link.</Text>
-            <Text style={styles.h2}>Track</Text>
-            <Text style={styles.p}>Give each plant a nickname, room, and reminders that fit your routine.</Text>
-            <Text style={styles.h2}>Grow</Text>
-            <Text style={styles.p}>Log notes and photos to see how your plants thrive.</Text>
-            <Button title="Next" onPress={() => setStep(2)} style={styles.mt} />
-          </GlassCard>
-        </View>
-      )}
-      {step === 2 && (
-        <View style={styles.block}>
-          <GlassCard>
-            <Text style={styles.h1}>What should we call you?</Text>
-            <Text style={styles.p}>Used for a friendly greeting on your home screen.</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="First name"
-              placeholderTextColor={theme.textSecondary}
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-            />
-            <Button title="Enable reminders & finish" onPress={finish} loading={saving} style={styles.mt} />
-            <Button title="Skip" onPress={finish} variant="ghost" style={styles.skip} />
-          </GlassCard>
-        </View>
-      )}
-    </Screen>
+    <BotanicalBackground variant="light">
+      <Screen scroll transparent>
+        {step < STEPS.length && (
+          <View style={styles.block}>
+            <VeeraLogo size="md" variant="onLight" style={{ marginBottom: 16 }} />
+            <GlassCard>
+              <View style={styles.stepHeader}>
+                <View style={styles.iconWrap}>
+                  <Ionicons name={STEPS[step].icon} size={22} color={theme.accent} />
+                </View>
+                <Text style={styles.stepKicker}>Step {step + 1} of {STEPS.length}</Text>
+              </View>
+              <Text style={styles.h1}>{STEPS[step].title}</Text>
+              <Text style={styles.p}>{STEPS[step].body}</Text>
+              <View style={styles.dots}>
+                {STEPS.map((_, i) => (
+                  <View key={i} style={[styles.dot, i === step && styles.dotOn]} />
+                ))}
+              </View>
+              <Button
+                title={step < STEPS.length - 1 ? 'Next' : 'Almost there'}
+                onPress={() => setStep((s) => s + 1)}
+                style={styles.mt}
+              />
+            </GlassCard>
+          </View>
+        )}
+        {step === STEPS.length && (
+          <View style={styles.block}>
+            <VeeraLogo size="md" variant="onLight" style={{ marginBottom: 16 }} />
+            <GlassCard>
+              <Text style={styles.h1}>What should we call you?</Text>
+              <Text style={styles.p}>Used for a calm greeting on your home screen.</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="First name"
+                placeholderTextColor={theme.textSecondary}
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+              />
+              <Button title="Enable reminders & finish" onPress={finish} loading={saving} style={styles.mt} />
+              <Button title="Skip" onPress={finish} variant="ghost" style={styles.skip} />
+            </GlassCard>
+          </View>
+        )}
+      </Screen>
+    </BotanicalBackground>
   );
 }
 
@@ -86,19 +119,48 @@ const styles = StyleSheet.create({
   block: {
     paddingTop: 24,
   },
-  h1: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: theme.text,
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
-    fontFamily: fontFamily.displayBold,
   },
-  h2: {
-    fontSize: 18,
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: theme.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepKicker: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.textSecondary,
+    letterSpacing: 0.5,
+    fontFamily: fontFamily.semi,
+  },
+  dots: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 20,
+    marginBottom: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.border,
+  },
+  dotOn: {
+    backgroundColor: theme.accent,
+    width: 22,
+  },
+  h1: {
+    fontSize: 24,
     fontWeight: '700',
     color: theme.text,
-    marginTop: 16,
-    marginBottom: 6,
+    marginBottom: 10,
     fontFamily: fontFamily.displayBold,
   },
   p: {
@@ -108,7 +170,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
   },
   mt: {
-    marginTop: 28,
+    marginTop: 24,
   },
   skip: {
     marginTop: 12,

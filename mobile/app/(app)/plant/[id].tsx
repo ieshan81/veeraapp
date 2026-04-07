@@ -1,4 +1,5 @@
 import { VeeraLogo } from '@/components/branding/VeeraLogo';
+import { SmartBackButton } from '@/components/navigation/SmartHeaderButtons';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -99,6 +100,14 @@ export default function CatalogPlantScreen() {
 
   const plant = plantQ.data;
 
+  const sectionList = sectionsQ.data ?? [];
+  const funSections = sectionList.filter(
+    (s) =>
+      /\b(fun|facts?|trivia|know|tips?|did you)\b/i.test(s.section_label) ||
+      /\b(fun|facts?|trivia|tips?)\b/i.test(s.section_key)
+  );
+  const otherSections = sectionList.filter((s) => !funSections.includes(s));
+
   if (!plantId) {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
@@ -160,11 +169,9 @@ export default function CatalogPlantScreen() {
           style={[styles.heroOverlay, { paddingTop: insets.top + 10 }]}
           pointerEvents="box-none"
         >
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={24} color={theme.textLight} />
-          </Pressable>
+          <SmartBackButton />
           <GlassPanel dark style={styles.heroBadge} intensity={40}>
-            <VeeraLogo size="sm" light showWordmark={false} />
+            <VeeraLogo size="sm" variant="onDark" />
           </GlassPanel>
         </View>
 
@@ -209,8 +216,21 @@ export default function CatalogPlantScreen() {
           </GlassCard>
         ) : null}
 
+        {/* Fun facts / good to know */}
+        {funSections.length ? (
+          <GlassCard dark style={styles.section}>
+            <Text style={styles.sectionLabel}>Good to know</Text>
+            {funSections.map((s) => (
+              <View key={s.id} style={styles.funBlock}>
+                <Text style={styles.funTitle}>{s.section_label}</Text>
+                <Text style={styles.sectionBody}>{s.content}</Text>
+              </View>
+            ))}
+          </GlassCard>
+        ) : null}
+
         {/* Content sections */}
-        {sectionsQ.data?.map((s) => (
+        {otherSections.map((s) => (
           <GlassCard dark key={s.id} style={styles.section}>
             <Text style={styles.sectionLabel}>{s.section_label}</Text>
             <Text style={styles.sectionBody}>{s.content}</Text>
@@ -380,6 +400,16 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.82)',
     lineHeight: 24,
     fontFamily: fontFamily.body,
+  },
+  funBlock: {
+    marginTop: 12,
+  },
+  funTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.accentLight,
+    marginBottom: 6,
+    fontFamily: fontFamily.semi,
   },
 
   // CTAs

@@ -55,8 +55,8 @@ export async function schedulePlantReminder(
   }
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'VEERA',
-      body: `Care check: ${label}`,
+      title: 'VEERA care',
+      body: `Quick check-in: ${label}`,
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
